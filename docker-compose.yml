@@ -1,0 +1,25 @@
+services:
+  # The Database
+  db:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_DATABASE: project_db
+      MYSQL_ROOT_PASSWORD: root_password
+    ports:
+      - "3306:3306"
+    volumes:
+    - ./docker/mysql:/docker-entrypoint-initdb.d
+
+  # The Web Server
+  web:
+    image: php:8.2-apache
+    depends_on:
+      - db
+    ports:
+      - "8080:80"
+    volumes:
+      - ./app:/var/www/html
+    # This command installs the drivers PHP needs to talk to MySQL
+    command: >
+      sh -c "docker-php-ext-install mysqli pdo pdo_mysql && apache2-foreground"

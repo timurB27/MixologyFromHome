@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Cocktail Manager PWA</title>
+    <link rel="stylesheet" href="style.css"> 
+</head>
+<body>
+
+<nav id="sidebar">
+    <h2>MFH Manager</h2>
+    <ul>
+        <li class="nav-item" data-target="users">Manage Users</li>
+        <li class="nav-item" data-target="ingredients">Manage Inventory</li>
+        <li class="nav-item" data-target="drinks">Drink Recipes</li>
+        <li class="nav-item" data-target="history">Drinking History</li>
+        <li class="nav-item" data-target="shopping_lists">Shopping List</li>
+    </ul>
+</nav>
+
+<main id="content-area">
+    <h1 id="view-title">Welcome</h1>
+    <div id="table-container"></div>
+</main>
+
+<div id="modal-overlay" style="display:none;">
+    <div id="modal-content">
+        <h2 id="modal-title">Edit Record</h2>
+        <form id="universal-form">
+            <input type="hidden" id="form-id-field"> 
+            <div id="form-inputs"></div> 
+            <div class="form-actions">
+                <button type="submit" class="btn-save">Save</button>
+                <button type="button" onclick="closeModal()" class="btn-cancel">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="js/app.js"></script>
+</body>
+</html>

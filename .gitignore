@@ -1,0 +1,9 @@
+# Ignore OS-specific files
+.DS_Store
+Thumbs.db
+
+# Ignore Docker state (if applicable)
+.docker/
+
+# Ignore sensitive database configs if they contain real passwords
+# db_config.php (Uncomment this if you want teammates to use their own local db_config)
