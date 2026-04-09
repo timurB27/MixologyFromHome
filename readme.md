@@ -1,5 +1,25 @@
 # Mixology From Home
 
+## How to start
+So this whole thing relies on containers. Install DockerDesktop. 
+
+1. Clone the repo
+2. Open DockerDesktop
+3. In your terminal run:
+    
+     `docker-compose up -d`
+4. Verify the containers are running:
+
+    `docker-compose ps`
+
+    You should see `mfh-db-1` and `mfh-web-1` running
+
+    To stop containers: 
+    
+    `docker-compose stop`
+5. To access the project, open your browser and head to: `http://localhost:8080`
+    If you want to check out the json, you can go to: `http://localhost:8080/api/ingredients.php`
+
 ## Overview
 We are making this have a dynamically mapped UI. There is a single "engine" that reads the schema and generates an interface. 
 
@@ -9,7 +29,7 @@ We are making this have a dynamically mapped UI. There is a single "engine" that
 * Network: apiRequest() handles all fetch logic
 * Backend: BaseController.php handles SQL based on mapping
 
-### How to Add a New Table
+### How to Add a New Table 
 To add a new feature (e.g User Reviews), follow these steps:
 
 1. Database
