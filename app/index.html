@@ -2,41 +2,111 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Cocktail Manager PWA</title>
-    <link rel="stylesheet" href="style.css"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mixology From Home</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<nav id="sidebar">
-    <h2>MFH Manager</h2>
-    <ul>
-        <li class="nav-item" data-target="users">Manage Users</li>
-        <li class="nav-item" data-target="ingredients">Manage Inventory</li>
-        <li class="nav-item" data-target="drinks">Drink Recipes</li>
-        <li class="nav-item" data-target="history">Drinking History</li>
-        <li class="nav-item" data-target="shopping_lists">Shopping List</li>
-    </ul>
-</nav>
+<!-- ============================================================
+     LOGIN SCREEN — shown on page load until user authenticates
+     ============================================================ -->
+<div id="login-screen">
+    <div id="login-box">
+        <div id="login-logo">🍹</div>
+        <h1>Mixology From Home</h1>
+        <p class="login-subtitle">Sign in to manage your cocktail world</p>
 
-<main id="content-area">
-    <h1 id="view-title">Welcome</h1>
-    <div id="table-container"></div>
-</main>
+        <div class="form-group">
+            <label for="login-email">Email</label>
+            <input type="email" id="login-email" placeholder="you@example.com" autocomplete="email">
+        </div>
 
+        <div class="form-group">
+            <label for="login-password">Password</label>
+            <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password">
+        </div>
+
+        <p id="login-error" class="login-error"></p>
+
+        <button onclick="doLogin()" id="login-btn" class="btn-login">Sign In</button>
+
+        <p class="login-hint">Admin default: <strong>admin@mfh.com</strong> / <strong>admin123</strong></p>
+    </div>
+</div>
+
+<!-- ============================================================
+     MAIN APP SCREEN — hidden until login succeeds
+     ============================================================ -->
+<div id="app-screen">
+
+    <!-- SIDEBAR -->
+    <nav id="sidebar">
+        <div id="sidebar-header">
+            <h2>🍹 MFH</h2>
+            <div id="user-info">
+                <span id="welcome-msg">Welcome</span>
+                <span id="user-role-badge" class="role-badge"></span>
+            </div>
+        </div>
+
+        <ul id="nav-list">
+            <li class="nav-section-label">Bar</li>
+            <li class="nav-item" data-target="ingredients">🧪 Manage Inventory</li>
+            <li class="nav-item" data-target="drinks">🍸 Drink Recipes</li>
+            <li class="nav-item" data-target="drink_ingredients">📋 Recipe Ingredients</li>
+
+            <li class="nav-section-label">My Activity</li>
+            <li class="nav-item" data-target="history">📖 Drinking History</li>
+            <li class="nav-item" data-target="favorites">⭐ Favorites</li>
+            <li class="nav-item" data-target="inventory">🗄️ My Pantry</li>
+
+            <li class="nav-section-label">Shopping</li>
+            <li class="nav-item" data-target="shopping_lists">🛒 Shopping Lists</li>
+            <li class="nav-item" data-target="shopping_items">📦 Shopping Items</li>
+
+            <li class="nav-section-label admin-only" style="display:none;">Admin</li>
+            <li class="nav-item admin-only" data-target="users" style="display:none;">👤 Manage Users</li>
+        </ul>
+
+        <button onclick="doLogout()" id="logout-btn">⬅ Logout</button>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main id="content-area">
+        <div id="content-header">
+            <h1 id="view-title">Welcome</h1>
+        </div>
+        <div id="table-container">
+            <div class="welcome-card">
+                <h2>Welcome to Mixology From Home!</h2>
+                <p>Select a category from the sidebar to get started.</p>
+            </div>
+        </div>
+    </main>
+
+</div>
+
+<!-- ============================================================
+     MODAL — universal Add / Edit form popup
+     ============================================================ -->
 <div id="modal-overlay" style="display:none;">
     <div id="modal-content">
-        <h2 id="modal-title">Edit Record</h2>
+        <div id="modal-header">
+            <h2 id="modal-title">Edit Record</h2>
+            <button class="modal-close" onclick="closeModal()">✕</button>
+        </div>
         <form id="universal-form">
-            <input type="hidden" id="form-id-field"> 
-            <div id="form-inputs"></div> 
+            <input type="hidden" id="form-id-field">
+            <div id="form-inputs"></div>
             <div class="form-actions">
-                <button type="submit" class="btn-save">Save</button>
+                <button type="submit" class="btn-save">💾 Save</button>
                 <button type="button" onclick="closeModal()" class="btn-cancel">Cancel</button>
             </div>
         </form>
     </div>
 </div>
 
-<script src="js/app.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
