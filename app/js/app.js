@@ -65,6 +65,55 @@ const schemas = {
     }
 };
 
+async function doLogin() {
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+    const formData = new FormData();
+    formData.append('action', 'login');
+    formData.append('email', email);
+    formData.append('password', password);
+
+    const res = await apiRequest('api/auth.php', { method: 'POST', body: formData });
+
+    if (res.status === 'success') {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('app-screen').style.display = 'flex';
+        document.getElementById('welcome-msg').innerText = `Hello, ${res.name}`;
+
+        // Only show "Manage Users" to admins
+        if (res.role === 'admin') {
+            document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
+        }
+        renderTable('ingredients');
+    } else {
+        const err = document.getElementById('login-error');
+        err.innerText = res.message;
+        err.style.display = 'block';
+    }
+}
+
+async function doLogout() {
+    const formData = new FormData();
+    formData.append('action', 'logout');
+    await apiRequest('api/auth.php', { method: 'POST', body: formData });
+    document.getElementById('app-screen').style.display = 'none';
+    document.getElementById('login-screen').style.display = 'flex';
+}
+
+// On page load, check if already logged in
+async function checkSession() {
+    const res = await apiRequest('api/auth.php?action=check');
+    if (res.status === 'logged_in') {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('app-screen').style.display = 'flex';
+        document.getElementById('welcome-msg').innerText = `Hello, ${res.name}`;
+        if (res.role === 'admin') {
+            document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
+        }
+        renderTable('ingredients');
+    }
+}
+
 /**
  * 2. THE NETWORK CLIENT (The Wrapper)
  * This is our universal "Messenger." Instead of writing 'fetch' everywhere, we use this.
