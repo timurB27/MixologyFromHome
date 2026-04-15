@@ -129,8 +129,11 @@ INSERT INTO User (first_name, last_name, email, password, phone, status, bio) VA
 ('Brian', 'Martinez', 'brian.m@email.com', 'hash123', '555-0117', 'active', 'Rum diarist.'),
 ('Karen', 'Robinson', 'karen.r@email.com', 'hash123', '555-0118', 'active', 'Classic cocktail fan.'),
 ('Steven', 'Clark', 'steven.c@email.com', 'hash123', '555-0119', 'active', 'Bitter flavors lover.'),
-('Donna', 'Lewis', 'donna.l@email.com', 'hash123', '555-0120', 'active', 'Sweet and fruity drinks.')
-('Admin', 'User', 'admin@mfh.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin', 'active', 'Testinig functionality.');
+('Donna', 'Lewis', 'donna.l@email.com', 'hash123', '555-0120', 'active', 'Sweet and fruity drinks.');
+
+-- Admin user with pre-hashed password (password: admin123)
+INSERT INTO User (first_name, last_name, email, password, phone, role, status, bio) VALUES
+('Admin', 'User', 'admin@mfh.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '555-0000', 'admin', 'active', 'Testing functionality.');
 
 
 -- ingredient table insert:
