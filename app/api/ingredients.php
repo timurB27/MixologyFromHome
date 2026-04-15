@@ -1,6 +1,6 @@
 <?php
-include '../db_connect.php';
-include 'BaseController.php'; // The Parent
+include __DIR__ . '/../db_connect.php';
+include __DIR__ . '/BaseController.php';
 header('Content-Type: application/json');
 
 // IngredientController inherits all methods (read, upsert, delete) from BaseController
