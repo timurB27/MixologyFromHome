@@ -6,6 +6,7 @@ CREATE TABLE User (
     email VARCHAR(100) UNIQUE,
     password VARCHAR(255),
     phone VARCHAR(20),
+    role ENUM('admin', 'user') DEFAULT 'user',
     status VARCHAR(20),
     bio TEXT,
     created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -128,7 +129,9 @@ INSERT INTO User (first_name, last_name, email, password, phone, status, bio) VA
 ('Brian', 'Martinez', 'brian.m@email.com', 'hash123', '555-0117', 'active', 'Rum diarist.'),
 ('Karen', 'Robinson', 'karen.r@email.com', 'hash123', '555-0118', 'active', 'Classic cocktail fan.'),
 ('Steven', 'Clark', 'steven.c@email.com', 'hash123', '555-0119', 'active', 'Bitter flavors lover.'),
-('Donna', 'Lewis', 'donna.l@email.com', 'hash123', '555-0120', 'active', 'Sweet and fruity drinks.');
+('Donna', 'Lewis', 'donna.l@email.com', 'hash123', '555-0120', 'active', 'Sweet and fruity drinks.')
+('Admin', 'User', 'admin@mfh.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin', 'active', 'Testinig functionality.');
+
 
 -- ingredient table insert:
 INSERT INTO Ingredient (Ingredient_name, category, unit_of_measurement, is_base_spirit) VALUES
