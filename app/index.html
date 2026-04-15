@@ -5,47 +5,181 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mixology From Home</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* ── AUTH PAGE ─────────────────────────────────────── */
+        #auth-page {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a252f, #2c3e50);
+        }
+
+        #auth-box {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            width: 400px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            text-align: center;
+        }
+
+        #auth-box .logo { font-size: 52px; margin-bottom: 8px; }
+        #auth-box h1   { font-size: 24px; color: #2c3e50; margin-bottom: 4px; }
+        #auth-box .subtitle { color: #888; font-size: 13px; margin-bottom: 24px; }
+
+        /* Tab switcher */
+        .auth-tabs {
+            display: flex;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+        .auth-tab {
+            flex: 1;
+            padding: 10px;
+            background: #f4f7f6;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: #888;
+            transition: all 0.2s;
+        }
+        .auth-tab.active {
+            background: #2c3e50;
+            color: white;
+        }
+
+        /* Forms */
+        .auth-form { display: none; text-align: left; }
+        .auth-form.active { display: block; }
+
+        .auth-form .form-group { margin-bottom: 16px; }
+        .auth-form .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 5px;
+        }
+        .auth-form .form-group input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: border 0.2s;
+            box-sizing: border-box;
+        }
+        .auth-form .form-group input:focus { border-color: #3498db; }
+
+        .auth-error   { color: #e74c3c; font-size: 13px; min-height: 18px; margin-bottom: 10px; }
+        .auth-success { color: #27ae60; font-size: 13px; min-height: 18px; margin-bottom: 10px; }
+
+        .btn-auth {
+            width: 100%;
+            padding: 12px;
+            background: #2c3e50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-auth:hover { background: #3498db; }
+
+        .auth-hint {
+            margin-top: 16px;
+            font-size: 12px;
+            color: #aaa;
+            text-align: center;
+        }
+
+        /* ── APP PAGE ──────────────────────────────────────── */
+        #app-page {
+            display: none;   /* hidden until login */
+            width: 100%;
+            height: 100vh;
+        }
+    </style>
 </head>
 <body>
 
 <!-- ============================================================
-     LOGIN SCREEN — shown on page load until user authenticates
+     AUTH PAGE — Login + Signup tabs
      ============================================================ -->
-<div id="login-screen">
-    <div id="login-box">
-        <div id="login-logo">🍹</div>
+<div id="auth-page">
+    <div id="auth-box">
+        <div class="logo">🍹</div>
         <h1>Mixology From Home</h1>
-        <p class="login-subtitle">Sign in to manage your cocktail world</p>
+        <p class="subtitle">Your personal cocktail manager</p>
 
-        <div class="form-group">
-            <label for="login-email">Email</label>
-            <input type="email" id="login-email" placeholder="you@example.com" autocomplete="email">
+        <!-- Tab buttons -->
+        <div class="auth-tabs">
+            <button class="auth-tab active" onclick="switchTab('login')">Sign In</button>
+            <button class="auth-tab"        onclick="switchTab('signup')">Sign Up</button>
         </div>
 
-        <div class="form-group">
-            <label for="login-password">Password</label>
-            <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password">
+        <!-- LOGIN FORM -->
+        <div id="login-form" class="auth-form active">
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="login-email" placeholder="you@example.com">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="login-password" placeholder="••••••••">
+            </div>
+            <p id="login-error" class="auth-error"></p>
+            <button class="btn-auth" onclick="doLogin()">Sign In</button>
+            <p class="auth-hint">Admin: <strong>admin@mfh.com</strong> / <strong>admin123</strong></p>
         </div>
 
-        <p id="login-error" class="login-error"></p>
-
-        <button onclick="doLogin()" id="login-btn" class="btn-login">Sign In</button>
-
-        <p class="login-hint">Admin default: <strong>admin@mfh.com</strong> / <strong>admin123</strong></p>
+        <!-- SIGNUP FORM -->
+        <div id="signup-form" class="auth-form">
+            <div class="form-group">
+                <label>First Name</label>
+                <input type="text" id="signup-firstname" placeholder="Jane">
+            </div>
+            <div class="form-group">
+                <label>Last Name</label>
+                <input type="text" id="signup-lastname" placeholder="Smith">
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="signup-email" placeholder="you@example.com">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="signup-password" placeholder="Choose a password">
+            </div>
+            <div class="form-group">
+                <label>Confirm Password</label>
+                <input type="password" id="signup-confirm" placeholder="Repeat password">
+            </div>
+            <p id="signup-error"   class="auth-error"></p>
+            <p id="signup-success" class="auth-success"></p>
+            <button class="btn-auth" onclick="doSignup()">Create Account</button>
+        </div>
     </div>
 </div>
 
 <!-- ============================================================
-     MAIN APP SCREEN — hidden until login succeeds
+     APP PAGE — shown only after successful login
      ============================================================ -->
-<div id="app-screen">
+<div id="app-page">
 
     <!-- SIDEBAR -->
     <nav id="sidebar">
         <div id="sidebar-header">
             <h2>🍹 MFH</h2>
             <div id="user-info">
-                <span id="welcome-msg">Welcome</span>
+                <span id="welcome-msg"></span>
                 <span id="user-role-badge" class="role-badge"></span>
             </div>
         </div>
@@ -79,7 +213,7 @@
         </div>
         <div id="table-container">
             <div class="welcome-card">
-                <h2>Welcome to Mixology From Home!</h2>
+                <h2>Welcome to Mixology From Home! 🍹</h2>
                 <p>Select a category from the sidebar to get started.</p>
             </div>
         </div>
@@ -108,5 +242,133 @@
 </div>
 
 <script src="app.js"></script>
+
+<script>
+    /* ── TAB SWITCHER ───────────────────────────────────────── */
+    function switchTab(tab) {
+        document.querySelectorAll('.auth-tab').forEach((t, i) => {
+            t.classList.toggle('active', (tab === 'login' ? i === 0 : i === 1));
+        });
+        document.getElementById('login-form').classList.toggle('active',  tab === 'login');
+        document.getElementById('signup-form').classList.toggle('active', tab === 'signup');
+        // Clear messages on switch
+        document.getElementById('login-error').innerText   = '';
+        document.getElementById('signup-error').innerText  = '';
+        document.getElementById('signup-success').innerText = '';
+    }
+
+    /* ── SHOW APP after login ───────────────────────────────── */
+    function showApp(name, role) {
+        document.getElementById('auth-page').style.display = 'none';
+        document.getElementById('app-page').style.display  = 'flex';
+        document.getElementById('welcome-msg').innerText   = `Hello, ${name}`;
+
+        const badge = document.getElementById('user-role-badge');
+        badge.innerText = role;
+        badge.className = `role-badge ${role}`;
+
+        if (role === 'admin') {
+            document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
+        }
+
+        renderTable('ingredients');
+    }
+
+    /* ── LOGIN ──────────────────────────────────────────────── */
+    async function doLogin() {
+        const email    = document.getElementById('login-email').value.trim();
+        const password = document.getElementById('login-password').value;
+        const errEl    = document.getElementById('login-error');
+        errEl.innerText = '';
+
+        if (!email || !password) {
+            errEl.innerText = 'Please enter your email and password.';
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('action',   'login');
+        formData.append('email',    email);
+        formData.append('password', password);
+
+        const res = await apiRequest('api/auth.php', { method: 'POST', body: formData });
+
+        if (res && res.status === 'success') {
+            showApp(res.name, res.role);
+        } else {
+            errEl.innerText = (res && res.message) ? res.message : 'Login failed. Please try again.';
+        }
+    }
+
+    /* ── SIGNUP ─────────────────────────────────────────────── */
+    async function doSignup() {
+        const firstName = document.getElementById('signup-firstname').value.trim();
+        const lastName  = document.getElementById('signup-lastname').value.trim();
+        const email     = document.getElementById('signup-email').value.trim();
+        const password  = document.getElementById('signup-password').value;
+        const confirm   = document.getElementById('signup-confirm').value;
+        const errEl     = document.getElementById('signup-error');
+        const okEl      = document.getElementById('signup-success');
+
+        errEl.innerText = '';
+        okEl.innerText  = '';
+
+        // Basic validation
+        if (!firstName || !lastName || !email || !password) {
+            errEl.innerText = 'Please fill in all fields.';
+            return;
+        }
+        if (password !== confirm) {
+            errEl.innerText = 'Passwords do not match.';
+            return;
+        }
+        if (password.length < 6) {
+            errEl.innerText = 'Password must be at least 6 characters.';
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('action',     'signup');
+        formData.append('first_name', firstName);
+        formData.append('last_name',  lastName);
+        formData.append('email',      email);
+        formData.append('password',   password);
+
+        const res = await apiRequest('api/auth.php', { method: 'POST', body: formData });
+
+        if (res && res.status === 'success') {
+            okEl.innerText = '✅ Account created! Signing you in...';
+            // Auto-login after signup
+            setTimeout(() => showApp(res.name, res.role), 1000);
+        } else {
+            errEl.innerText = (res && res.message) ? res.message : 'Signup failed. Try a different email.';
+        }
+    }
+
+    /* ── LOGOUT ─────────────────────────────────────────────── */
+    async function doLogout() {
+        const formData = new FormData();
+        formData.append('action', 'logout');
+        await apiRequest('api/auth.php', { method: 'POST', body: formData });
+
+        document.getElementById('app-page').style.display  = 'none';
+        document.getElementById('auth-page').style.display = 'flex';
+        document.getElementById('login-email').value    = '';
+        document.getElementById('login-password').value = '';
+        switchTab('login');
+    }
+
+    /* ── CHECK SESSION on page load ─────────────────────────── */
+    async function checkSession() {
+        const res = await apiRequest('api/auth.php?action=check');
+        if (res && res.status === 'logged_in') {
+            showApp(res.name, res.role);
+        }
+        // If not logged in, auth-page stays visible (default)
+    }
+
+    window.onload = () => checkSession();
+</script>
+
 </body>
 </html>
