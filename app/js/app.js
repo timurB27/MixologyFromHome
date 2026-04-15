@@ -279,6 +279,8 @@ document.querySelectorAll('.nav-item').forEach(item => {
 });
 
 // Run this as soon as the page finishes loading
-window.onload = () => {
-    renderTable('ingredients'); // Start the app by showing the Pantry
-};
+//window.onload = () => {
+  //  renderTable('ingredients'); // Start the app by showing the Pantry
+//};
+
+window.onload = () => { checkSession(); };
