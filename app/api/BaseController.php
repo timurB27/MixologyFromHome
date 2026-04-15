@@ -1,4 +1,11 @@
 <?php
+session_start();
+// Protect all API routes — must be logged in
+if (!isset($_SESSION['user_id'])) {
+    header('Content-Type: application/json');
+    echo json_encode(["status" => "error", "message" => "Unauthorized"]);
+    exit;
+}
 /**
  * THE ENGINE (BaseController)
  * This class handles all the SQL heavy lifting so we don't have to write
