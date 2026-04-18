@@ -133,7 +133,7 @@ INSERT INTO User (first_name, last_name, email, password, phone, status, bio) VA
 
 -- Admin user with pre-hashed password (password: admin123)
 INSERT INTO User (first_name, last_name, email, password, phone, role, status, bio) VALUES
-('Admin', 'User', 'admin@mfh.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '555-0000', 'admin', 'active', 'Testing functionality.');
+('Admin', 'User', 'admin@mfh.com', '$2y$10$TdEqF0lllIulAmr3TMGoi..34F8XUwUXQFOOYJGh3vsfs5R35spVm', '555-0000', 'admin', 'active', 'Testing functionality.');
 
 
 -- ingredient table insert:
