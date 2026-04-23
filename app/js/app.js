@@ -217,7 +217,63 @@ function closeModal() {
 }
 
 /**
- * 5. NAVIGATION & INITIALIZATION
+ * 5. REPORTS VIEW
+ * Fetches all three aggregation reports from api/reports.php and renders
+ * them as read-only summary tables (no CRUD controls).
+ */
+async function renderReports() {
+    const container = document.getElementById('table-container');
+    container.innerHTML = '<div class="loading">Loading reports...</div>';
+
+    const data = await apiRequest('api/reports.php');
+
+    if (!data || data.status === 'error') {
+        container.innerHTML = `<p class="error">Error: Could not load reports.</p>`;
+        return;
+    }
+
+    function buildReportTable(rows, columns, labels) {
+        if (!rows || rows.length === 0) {
+            return '<p class="report-empty">No data available yet.</p>';
+        }
+        let t = `<table class="universal-table"><thead><tr>`;
+        labels.forEach(l => t += `<th>${l}</th>`);
+        t += `</tr></thead><tbody>`;
+        rows.forEach(row => {
+            t += `<tr>`;
+            columns.forEach(col => t += `<td>${row[col] ?? ''}</td>`);
+            t += `</tr>`;
+        });
+        return t + `</tbody></table>`;
+    }
+
+    container.innerHTML = `
+        <div class="report-section">
+            <h3>🍹 Drinks You Can Make</h3>
+            <p class="report-desc">Cocktails you can prepare right now based on your current pantry inventory.</p>
+            ${buildReportTable(data.can_make,
+                ['name', 'difficulty', 'category', 'flavor_profile'],
+                ['Drink Name', 'Difficulty', 'Category', 'Flavor Profile'])}
+        </div>
+        <div class="report-section">
+            <h3>⭐ Most Popular Drinks</h3>
+            <p class="report-desc">Top 10 most favorited drinks across all users.</p>
+            ${buildReportTable(data.popular,
+                ['name', 'fav_count'],
+                ['Drink Name', 'Times Favorited'])}
+        </div>
+        <div class="report-section">
+            <h3>📊 Highest Rated Drinks</h3>
+            <p class="report-desc">Drinks ranked by average personal rating from all drinking history entries.</p>
+            ${buildReportTable(data.top_rated,
+                ['name', 'avg_rating', 'times_made'],
+                ['Drink Name', 'Avg Rating', 'Times Made'])}
+        </div>
+    `;
+}
+
+/**
+ * 6. NAVIGATION & INITIALIZATION
  * This section handles clicking the Sidebar links and loading the first view.
  */
 document.querySelectorAll('.nav-item').forEach(item => {
@@ -230,8 +286,11 @@ document.querySelectorAll('.nav-item').forEach(item => {
         document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
         this.classList.add('active');
 
-        // Render the requested table
-        renderTable(targetSchema);
+        if (targetSchema === 'reports') {
+            renderReports();
+        } else {
+            renderTable(targetSchema);
+        }
     });
 });
 
