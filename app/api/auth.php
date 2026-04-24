@@ -89,5 +89,50 @@ if ($action === 'login') {
     } else {
         echo json_encode(["status" => "logged_out"]);
     }
+
+// ── CHANGE PASSWORD ──────────────────────────────────────────
+} elseif ($action === 'change_password') {
+    if (!isset($_SESSION['user_id'])) {
+        echo json_encode(["status" => "error", "message" => "Not logged in."]);
+        exit;
+    }
+
+    $current  = $_POST['current_password'] ?? '';
+    $new_pass = $_POST['new_password']      ?? '';
+    $confirm  = $_POST['confirm_password']  ?? '';
+
+    if (!$current || !$new_pass || !$confirm) {
+        echo json_encode(["status" => "error", "message" => "All fields are required."]);
+        exit;
+    }
+    if ($new_pass !== $confirm) {
+        echo json_encode(["status" => "error", "message" => "New passwords do not match."]);
+        exit;
+    }
+    if (strlen($new_pass) < 6) {
+        echo json_encode(["status" => "error", "message" => "Password must be at least 6 characters."]);
+        exit;
+    }
+
+    $user_id = $_SESSION['user_id'];
+    $stmt = $conn->prepare("SELECT password FROM User WHERE UserID = ?");
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $row = $stmt->get_result()->fetch_assoc();
+
+    if (!$row || !password_verify($current, $row['password'])) {
+        echo json_encode(["status" => "error", "message" => "Current password is incorrect."]);
+        exit;
+    }
+
+    $hashed = password_hash($new_pass, PASSWORD_DEFAULT);
+    $upd = $conn->prepare("UPDATE User SET password = ? WHERE UserID = ?");
+    $upd->bind_param("si", $hashed, $user_id);
+
+    if ($upd->execute()) {
+        echo json_encode(["status" => "success"]);
+    } else {
+        echo json_encode(["status" => "error", "message" => "Could not update password."]);
+    }
 }
 ?>

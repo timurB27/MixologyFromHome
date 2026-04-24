@@ -12,8 +12,8 @@ const schemas = {
     users: {
         api: 'api/users.php',
         idField: 'UserID',
-        fields: ['first_name', 'last_name', 'email', 'password', 'phone', 'status', 'bio'],
-        labels: ['First Name', 'Last Name', 'Email', 'Password', 'Phone', 'Status', 'Bio']
+        fields: ['first_name', 'last_name', 'email', 'password', 'phone', 'role', 'status', 'bio'],
+        labels: ['First Name', 'Last Name', 'Email', 'Password', 'Phone', 'Role', 'Status', 'Bio']
     },
     ingredients: {
         api: 'api/ingredients.php',

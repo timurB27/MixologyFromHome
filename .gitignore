@@ -8,8 +8,6 @@ Thumbs.db
 # Ignore sensitive database configs if they contain real passwords
 # db_config.php (Uncomment this if you want teammates to use their own local db_config)
 
-/docs
-
 .claude
 CLAUDE.md
 *Zone-Identifier*

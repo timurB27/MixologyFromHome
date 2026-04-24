@@ -106,8 +106,41 @@
             <li class="nav-item admin-only" data-target="users" style="display:none;">👤 Manage Users</li>
         </ul>
 
+        <button onclick="openChangePassword()" id="change-pw-btn">🔑 Change Password</button>
         <button onclick="doLogout()" id="logout-btn">⬅ Logout</button>
     </nav>
+
+<!-- ============================================================
+     CHANGE PASSWORD MODAL
+     ============================================================ -->
+<div id="pw-modal-overlay" style="display:none;">
+    <div id="modal-content">
+        <div id="modal-header">
+            <h2>Change Password</h2>
+            <button class="modal-close" onclick="closePwModal()">✕</button>
+        </div>
+        <form id="pw-change-form" onsubmit="submitChangePassword(event)">
+            <div class="form-group">
+                <label>Current Password</label>
+                <input type="password" id="pw-current" placeholder="Current password" required>
+            </div>
+            <div class="form-group">
+                <label>New Password</label>
+                <input type="password" id="pw-new" placeholder="New password (min 6 chars)" required>
+            </div>
+            <div class="form-group">
+                <label>Confirm New Password</label>
+                <input type="password" id="pw-confirm" placeholder="Repeat new password" required>
+            </div>
+            <p id="pw-error"   class="auth-error"></p>
+            <p id="pw-success" class="auth-success"></p>
+            <div class="form-actions">
+                <button type="submit" class="btn-save">💾 Save</button>
+                <button type="button" onclick="closePwModal()" class="btn-cancel">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
 
     <!-- MAIN CONTENT -->
     <main id="content-area">
@@ -271,6 +304,43 @@
     }
 
     window.onload = () => checkSession();
+
+    /* ── CHANGE PASSWORD ───────────────────────────────────── */
+    function openChangePassword() {
+        document.getElementById('pw-current').value  = '';
+        document.getElementById('pw-new').value      = '';
+        document.getElementById('pw-confirm').value  = '';
+        document.getElementById('pw-error').innerText   = '';
+        document.getElementById('pw-success').innerText = '';
+        document.getElementById('pw-modal-overlay').style.display = 'flex';
+    }
+
+    function closePwModal() {
+        document.getElementById('pw-modal-overlay').style.display = 'none';
+    }
+
+    async function submitChangePassword(e) {
+        e.preventDefault();
+        const errEl = document.getElementById('pw-error');
+        const okEl  = document.getElementById('pw-success');
+        errEl.innerText = '';
+        okEl.innerText  = '';
+
+        const formData = new FormData();
+        formData.append('action',           'change_password');
+        formData.append('current_password', document.getElementById('pw-current').value);
+        formData.append('new_password',     document.getElementById('pw-new').value);
+        formData.append('confirm_password', document.getElementById('pw-confirm').value);
+
+        const res = await apiRequest('api/auth.php', { method: 'POST', body: formData });
+
+        if (res && res.status === 'success') {
+            okEl.innerText = '✅ Password updated successfully!';
+            setTimeout(() => closePwModal(), 1500);
+        } else {
+            errEl.innerText = (res && res.message) ? res.message : 'Could not update password.';
+        }
+    }
 </script>
 
 </body>

@@ -15,10 +15,10 @@ class UserController extends BaseController {
 }
 
 $controller = new UserController(
-    $conn, 
-    "User", 
-    "UserID", 
-    ['first_name', 'last_name', 'email', 'password', 'status']
+    $conn,
+    "User",
+    "UserID",
+    ['first_name', 'last_name', 'email', 'password', 'phone', 'role', 'status', 'bio']
 );
 
 $controller->handleRequest($_SERVER['REQUEST_METHOD']);
