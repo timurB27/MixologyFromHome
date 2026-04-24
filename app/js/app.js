@@ -25,45 +25,75 @@ const schemas = {
         api: 'api/drinks.php',
         idField: 'DrinkID',
         fields: ['name', 'description', 'recipe', 'base_spirit_ID', 'flavor_profile', 'glassware_type', 'difficulty', 'category', 'created_by_userID'],
-        labels: ['Drink Name', 'Description', 'Recipe Text', 'Base Spirit ID', 'Flavor', 'Glass', 'Difficulty', 'Category', 'Creator ID']
+        labels: ['Drink Name', 'Description', 'Recipe Text', 'Base Spirit', 'Flavor', 'Glass', 'Difficulty', 'Category', 'Created By'],
+        lookups: { base_spirit_ID: 'ingredients', created_by_userID: 'users' }
     },
     drink_ingredients: {
         api: 'api/drink_ingredients.php',
-        idField: 'DrinkID', 
+        idField: 'DrinkID',
         fields: ['DrinkID', 'IngredientID', 'Quantity', 'Unit', 'Preperation_note', 'Ingredient_order'],
-        labels: ['Drink ID', 'Ingredient ID', 'Qty', 'Unit', 'Notes', 'Order']
+        labels: ['Drink', 'Ingredient', 'Qty', 'Unit', 'Notes', 'Order'],
+        lookups: { DrinkID: 'drinks', IngredientID: 'ingredients' }
     },
     inventory: {
         api: 'api/inventory.php',
-        idField: 'UserID', 
+        idField: 'UserID',
         fields: ['UserID', 'IngredientID', 'Quantity_owned', 'Unit'],
-        labels: ['User ID', 'Ingredient ID', 'Qty Owned', 'Unit']
+        labels: ['User', 'Ingredient', 'Qty Owned', 'Unit'],
+        lookups: { UserID: 'users', IngredientID: 'ingredients' }
     },
     favorites: {
         api: 'api/favorites.php',
         idField: 'UserID',
         fields: ['UserID', 'DrinkID'],
-        labels: ['User ID', 'Drink ID']
+        labels: ['User', 'Drink'],
+        lookups: { UserID: 'users', DrinkID: 'drinks' }
     },
     history: {
         api: 'api/history.php',
         idField: 'HistoryID',
         fields: ['UserID', 'DrinkID', 'personal_rating', 'notes'],
-        labels: ['User ID', 'Drink ID', 'Rating (1-5)', 'Notes']
+        labels: ['User', 'Drink', 'Rating (1-5)', 'Notes'],
+        lookups: { UserID: 'users', DrinkID: 'drinks' }
     },
     shopping_lists: {
         api: 'api/shopping_lists.php',
         idField: 'ShoppingListID',
         fields: ['UserID', 'list_name', 'status'],
-        labels: ['User ID', 'List Name', 'Status']
+        labels: ['User', 'List Name', 'Status'],
+        lookups: { UserID: 'users' }
     },
     shopping_items: {
         api: 'api/shopping_items.php',
         idField: 'ShoppinglistID',
         fields: ['ShoppinglistID', 'IngredientID', 'Unit', 'Is_purchased', 'notes'],
-        labels: ['List ID', 'Ingredient ID', 'Unit', 'Purchased (0/1)', 'Notes']
+        labels: ['Shopping List', 'Ingredient', 'Unit', 'Purchased (0/1)', 'Notes'],
+        lookups: { ShoppinglistID: 'shopping_lists', IngredientID: 'ingredients' }
     }
 };
+
+/**
+ * LOOKUP CACHE — maps IDs to human-readable names for foreign key fields.
+ * Populated by loadLookups() on login and refreshed on each table render.
+ */
+const lookupCache = { users: {}, drinks: {}, ingredients: {}, shopping_lists: {} };
+
+async function loadLookups() {
+    const [users, drinks, ingredients, lists] = await Promise.all([
+        apiRequest('api/users.php'),
+        apiRequest('api/drinks.php'),
+        apiRequest('api/ingredients.php'),
+        apiRequest('api/shopping_lists.php')
+    ]);
+    if (Array.isArray(users))
+        lookupCache.users = Object.fromEntries(users.map(u => [u.UserID, `${u.first_name} ${u.last_name}`]));
+    if (Array.isArray(drinks))
+        lookupCache.drinks = Object.fromEntries(drinks.map(d => [d.DrinkID, d.name]));
+    if (Array.isArray(ingredients))
+        lookupCache.ingredients = Object.fromEntries(ingredients.map(i => [i.IngredientID, i.Ingredient_name]));
+    if (Array.isArray(lists))
+        lookupCache.shopping_lists = Object.fromEntries(lists.map(l => [l.ShoppingListID, l.list_name]));
+}
 
 // doLogin is defined inline in index.html (uses auth-page/app-page IDs)
 
@@ -98,28 +128,32 @@ async function renderTable(schemaKey) {
     const container = document.getElementById('table-container');
     container.innerHTML = '<div class="loading">Loading data...</div>';
 
+    // Refresh lookups before rendering any table that displays foreign key names
+    if (schema.lookups) await loadLookups();
+
     const data = await apiRequest(schema.api);
-    
-    // Safety check if the database is down or empty
+
     if (!data || data.status === 'error') {
         container.innerHTML = `<p class="error">Error: Could not reach the server.</p>`;
         return;
     }
 
-    // Build the Add button and Table start
     let html = `<button onclick="showForm('${schemaKey}')" class="btn-add">+ Add New</button>`;
     html += `<table class="universal-table"><thead><tr>`;
-    
-    // Dynamically create Table Headers from our Schema Labels
     schema.labels.forEach(label => html += `<th>${label}</th>`);
     html += `<th>Actions</th></tr></thead><tbody>`;
 
-    // Loop through the data from SQL and build the rows
     data.forEach(row => {
         html += `<tr>`;
-        schema.fields.forEach(field => html += `<td>${row[field] || ''}</td>`);
-        
-        // Grab the ID for this specific row so the Edit/Delete buttons know which row they are touching
+        schema.fields.forEach(field => {
+            const val = row[field] ?? '';
+            const lookupType = schema.lookups && schema.lookups[field];
+            const display = lookupType && lookupCache[lookupType][val]
+                ? lookupCache[lookupType][val]
+                : val;
+            html += `<td>${display}</td>`;
+        });
+
         const id = row[schema.idField];
         html += `<td>
             <button class="btn-edit" onclick="editRow('${schemaKey}', ${id})">Edit</button>

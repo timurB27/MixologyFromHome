@@ -194,7 +194,7 @@
     }
 
     /* ── SHOW APP after login ───────────────────────────────── */
-    function showApp(name, role) {
+    async function showApp(name, role) {
         document.getElementById('auth-page').style.display = 'none';
         document.getElementById('app-page').style.display  = 'flex';
         document.getElementById('welcome-msg').innerText   = `Hello, ${name}`;
@@ -203,10 +203,13 @@
         badge.innerText = role;
         badge.className = `role-badge ${role}`;
 
+        // Always reset first, then show only if admin
+        document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
         if (role === 'admin') {
             document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
         }
 
+        await loadLookups();
         renderTable('ingredients');
     }
 
@@ -294,16 +297,7 @@
         switchTab('login');
     }
 
-    /* ── CHECK SESSION on page load ─────────────────────────── */
-    async function checkSession() {
-        const res = await apiRequest('api/auth.php?action=check');
-        if (res && res.status === 'logged_in') {
-            showApp(res.name, res.role);
-        }
-        // If not logged in, auth-page stays visible (default)
-    }
-
-    window.onload = () => checkSession();
+    window.onload = () => {}; // Always show login screen on open
 
     /* ── CHANGE PASSWORD ───────────────────────────────────── */
     function openChangePassword() {
