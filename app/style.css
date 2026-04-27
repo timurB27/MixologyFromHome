@@ -684,7 +684,51 @@ body {
 .drink-card-spirit {
     font-size: 12px;
     color: var(--text-muted);
-    margin-top: auto;
+}
+
+.drink-card-body {
+    flex: 1;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.drink-card-footer {
+    display: flex;
+    gap: 6px;
+    padding-top: 10px;
+    margin-top: 4px;
+    border-top: 1px solid var(--border);
+}
+
+.btn-card-edit, .btn-card-delete {
+    flex: 1;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 5px 0;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.btn-card-edit {
+    background: #eaf0fb;
+    color: #2563eb;
+}
+
+.btn-card-edit:hover {
+    background: #dbe8f8;
+}
+
+.btn-card-delete {
+    background: #fdeaea;
+    color: var(--danger);
+}
+
+.btn-card-delete:hover {
+    background: #fad5d5;
 }
 
 /* ── DRINK DETAIL MODAL ──────────────────────────────────────── */
@@ -731,6 +775,32 @@ body {
     border-radius: var(--radius-sm);
     border-left: 3px solid var(--accent);
     white-space: pre-wrap;
+}
+
+/* ── HISTORY — star to favorites button ─────────────────────── */
+.btn-star {
+    background: #fffbea;
+    color: #b7791f;
+    border: 1px solid #f6e05e;
+    border-radius: var(--radius-sm);
+    padding: 3px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+    white-space: nowrap;
+    margin-right: 4px;
+}
+
+.btn-star:hover {
+    background: #fef08a;
+}
+
+.btn-star:disabled {
+    background: #f0fdf4;
+    color: var(--success);
+    border-color: #86efac;
+    cursor: default;
 }
 
 /* ── BROWSE INGREDIENTS — pantry button ─────────────────────── */

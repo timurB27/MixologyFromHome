@@ -1,12 +1,5 @@
 /**
  * 1. THE MASTER BLUEPRINT (The Schema Map)
- * This is the "Brain" of the app. Every table in our SQL database is mapped here.
- * If you add a new table to the database, just add a new key here.
- * * Each object contains:
- * - api: The PHP file handling the requests.
- * - idField: The Primary Key from our SQL (Used for Edit/Delete).
- * - fields: The exact column names from SQL.
- * - labels: The human-readable names that appear in the Table Headers and Forms.
  */
 const schemas = {
     users: {
@@ -61,15 +54,15 @@ const schemas = {
         idField: 'HistoryID',
         fields: ['DrinkID', 'personal_rating', 'notes'],
         labels: ['Drink', 'Rating (1-5)', 'Notes'],
-        lookups: { DrinkID: 'drinks' }
+        lookups: { DrinkID: 'drinks' },
+        extraAction: (row) => `<button class="btn-star" onclick="addToFavorites(${row.DrinkID}, this)" title="Add to Favorites">⭐ Favorite</button>`
     },
     shopping_lists: {
         label: 'Shopping List',
         api: 'api/shopping_lists.php',
         idField: 'ShoppingListID',
-        fields: ['UserID', 'list_name', 'status'],
-        labels: ['User', 'List Name', 'Status'],
-        lookups: { UserID: 'users' }
+        fields: ['list_name', 'status'],
+        labels: ['List Name', 'Status']
     },
     shopping_items: {
         label: 'Shopping Item',
@@ -83,7 +76,6 @@ const schemas = {
 
 /**
  * LOOKUP CACHE — maps IDs to human-readable names for foreign key fields.
- * Populated by loadLookups() on login and refreshed on each table render.
  */
 const lookupCache = { users: {}, drinks: {}, ingredients: {}, shopping_lists: {} };
 
@@ -104,16 +96,8 @@ async function loadLookups() {
         lookupCache.shopping_lists = Object.fromEntries(lists.map(l => [l.ShoppingListID, l.list_name]));
 }
 
-// doLogin is defined inline in index.html (uses auth-page/app-page IDs)
-
-// doLogout is defined inline in index.html
-
-// checkSession is defined inline in index.html
-
 /**
- * 2. THE NETWORK CLIENT (The Wrapper)
- * This is our universal "Messenger." Instead of writing 'fetch' everywhere, we use this.
- * It handles errors automatically and converts server responses into JSON.
+ * 2. THE NETWORK CLIENT
  */
 async function apiRequest(url, options = {}) {
     try {
@@ -128,9 +112,9 @@ async function apiRequest(url, options = {}) {
 
 /**
  * 3. CURRENT VIEW TRACKER
- * Tracks the active view so save/delete can refresh the right content.
  */
 let currentView = null;
+let currentUserRole = null; // set by showApp() in index.html
 
 function refreshView() {
     if (!currentView) return;
@@ -141,10 +125,15 @@ function refreshView() {
 }
 
 /**
+ * Helper — returns the .form-actions div inside the universal modal (not the pw-modal).
+ * Both modals have a .form-actions, so we must scope to #modal-overlay.
+ */
+function getFormActions() {
+    return document.querySelector('#modal-overlay .form-actions');
+}
+
+/**
  * 4. THE TABLE BUILDER
- * This function builds the HTML table on the fly.
- * It doesn't care if it's showing Users or Drinks; it just loops through
- * whatever 'schemaKey' we give it and creates the columns.
  */
 async function renderTable(schemaKey) {
     currentView = schemaKey;
@@ -152,7 +141,6 @@ async function renderTable(schemaKey) {
     const container = document.getElementById('table-container');
     container.innerHTML = '<div class="loading">Loading data...</div>';
 
-    // Refresh lookups before rendering any table that displays foreign key names
     if (schema.lookups) await loadLookups();
 
     const data = await apiRequest(schema.api);
@@ -179,7 +167,9 @@ async function renderTable(schemaKey) {
         });
 
         const id = row[schema.idField];
+        const extraBtn = schema.extraAction ? schema.extraAction(row) : '';
         html += `<td>
+            ${extraBtn}
             <button class="btn-edit" onclick="editRow('${schemaKey}', ${id})">Edit</button>
             <button class="btn-delete" onclick="deleteRow('${schemaKey}', ${id})">Delete</button>
         </td></tr>`;
@@ -215,14 +205,20 @@ async function renderDrinksGrid() {
     data.forEach(drink => {
         const base = lookupCache.ingredients[drink.base_spirit_ID] || '';
         html += `
-            <div class="drink-card" onclick="showDrinkDetail(${drink.DrinkID})">
-                <div class="drink-card-name">${drink.name}</div>
-                <div class="drink-card-tags">
-                    ${drink.category ? `<span class="tag">${drink.category}</span>` : ''}
-                    ${drink.difficulty ? `<span class="tag tag-diff">${drink.difficulty}</span>` : ''}
+            <div class="drink-card">
+                <div class="drink-card-body" onclick="showDrinkDetail(${drink.DrinkID})">
+                    <div class="drink-card-name">${drink.name}</div>
+                    <div class="drink-card-tags">
+                        ${drink.category ? `<span class="tag">${drink.category}</span>` : ''}
+                        ${drink.difficulty ? `<span class="tag tag-diff">${drink.difficulty}</span>` : ''}
+                    </div>
+                    ${drink.flavor_profile ? `<div class="drink-card-flavor">${drink.flavor_profile}</div>` : ''}
+                    ${base ? `<div class="drink-card-spirit">🍶 ${base}</div>` : ''}
                 </div>
-                ${drink.flavor_profile ? `<div class="drink-card-flavor">${drink.flavor_profile}</div>` : ''}
-                ${base ? `<div class="drink-card-spirit">🍶 ${base}</div>` : ''}
+                <div class="drink-card-footer">
+                    <button class="btn-card-edit" onclick="editRow('drinks', ${drink.DrinkID})">✏️ Edit</button>
+                    <button class="btn-card-delete" onclick="deleteRow('drinks', ${drink.DrinkID})">🗑️ Delete</button>
+                </div>
             </div>`;
     });
 
@@ -253,7 +249,7 @@ function showDrinkDetail(drinkId) {
             ${drink.recipe ? `<div class="detail-section"><div class="detail-label">Recipe</div><div class="detail-body">${drink.recipe}</div></div>` : ''}
         </div>`;
 
-    document.querySelector('.form-actions').innerHTML = `
+    getFormActions().innerHTML = `
         <button type="button" class="btn-edit" onclick="editRow('drinks', ${drinkId})">✏️ Edit</button>
         <button type="button" class="btn-delete" onclick="deleteRow('drinks', ${drinkId})">🗑️ Delete</button>
         <button type="button" onclick="closeModal()" class="btn-cancel">Close</button>`;
@@ -262,7 +258,7 @@ function showDrinkDetail(drinkId) {
 }
 
 /**
- * 6. BROWSE INGREDIENTS — read-only table with "+ Pantry" action per row
+ * 6. BROWSE INGREDIENTS — table with "+ Pantry" action per row
  */
 async function renderBrowseIngredients() {
     currentView = 'ingredients';
@@ -311,7 +307,7 @@ function showAddToPantryModal(ingredientId, ingredientName) {
             <input type="text" name="Unit" value="" required>
         </div>`;
 
-    document.querySelector('.form-actions').innerHTML = `
+    getFormActions().innerHTML = `
         <button type="submit" class="btn-save">💾 Add to Pantry</button>
         <button type="button" onclick="closeModal()" class="btn-cancel">Cancel</button>`;
 
@@ -324,11 +320,21 @@ function showAddToPantryModal(ingredientId, ingredientName) {
 }
 
 /**
- * 7. MODAL & FORM LOGIC
- * showForm(): Opens the pop-up and generates input fields based on the Schema.
- * saveData(): Collects the form data and sends a POST request to PHP to Save/Update.
- * editRow(): Fetches the specific row data first, then opens the form to edit it.
- * deleteRow(): Sends a DELETE request to the API for a specific ID.
+ * 7. ADD TO FAVORITES from history
+ */
+async function addToFavorites(drinkId, btn) {
+    const formData = new FormData();
+    formData.append('DrinkID', drinkId);
+    const res = await apiRequest('api/favorites.php', { method: 'POST', body: formData });
+    if (res && res.status === 'success') {
+        if (btn) { btn.innerText = '✅ Added'; btn.disabled = true; }
+    } else {
+        alert('Could not add to favorites: ' + (res && res.message ? res.message : 'Unknown error'));
+    }
+}
+
+/**
+ * 8. MODAL & FORM LOGIC
  */
 async function showForm(schemaKey, id = null, existingData = null) {
     const schema = schemas[schemaKey];
@@ -366,7 +372,7 @@ async function showForm(schemaKey, id = null, existingData = null) {
     });
 
     // Reset form-actions to default Save/Cancel
-    document.querySelector('.form-actions').innerHTML = `
+    getFormActions().innerHTML = `
         <button type="submit" class="btn-save">💾 Save</button>
         <button type="button" onclick="closeModal()" class="btn-cancel">Cancel</button>`;
 
@@ -382,7 +388,6 @@ async function saveData(schemaKey) {
     const schema = schemas[schemaKey];
     const formData = new FormData(document.getElementById('universal-form'));
 
-    // Ensure the ID is included in the POST data so PHP knows which record to update
     const id = document.getElementById('form-id-field').value;
     if (id) formData.append('id', id);
 
@@ -403,7 +408,6 @@ async function editRow(schemaKey, id) {
     const schema = schemas[schemaKey];
     const data = await apiRequest(schema.api);
     if (data && !data.status) {
-        // Find the record in the list that matches the ID we clicked
         const record = data.find(item => item[schema.idField] == id);
         showForm(schemaKey, id, record);
     }
@@ -424,16 +428,14 @@ async function deleteRow(schemaKey, id) {
 
 function closeModal() {
     document.getElementById('modal-overlay').style.display = 'none';
-    // Reset form-actions to default state
-    document.querySelector('.form-actions').innerHTML = `
+    // Reset form-actions in the universal modal to default
+    getFormActions().innerHTML = `
         <button type="submit" class="btn-save">💾 Save</button>
         <button type="button" onclick="closeModal()" class="btn-cancel">Cancel</button>`;
 }
 
 /**
- * 8. REPORTS VIEW
- * Fetches all three aggregation reports from api/reports.php and renders
- * them as read-only summary tables (no CRUD controls).
+ * 9. REPORTS VIEW
  */
 async function renderReports() {
     currentView = 'reports';
@@ -488,16 +490,13 @@ async function renderReports() {
 }
 
 /**
- * 9. NAVIGATION & INITIALIZATION
- * This section handles clicking the Sidebar links and loading the first view.
+ * 10. NAVIGATION & INITIALIZATION
  */
 document.querySelectorAll('.nav-item').forEach(item => {
     item.addEventListener('click', function() {
-        // Get the target (e.g., 'users' or 'drinks') from the HTML data-target attribute
         const targetSchema = this.getAttribute('data-target');
         document.getElementById('view-title').innerText = this.innerText;
 
-        // Visual feedback: toggle the 'active' class for CSS styling
         document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
         this.classList.add('active');
 

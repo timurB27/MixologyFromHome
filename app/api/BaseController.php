@@ -43,9 +43,11 @@ class BaseController {
 
     /**
      * READ (GET): Fetches rows from the table, filtered to session user if userFilter is set.
+     * Admins bypass the filter and see all rows.
      */
     protected function read() {
-        if ($this->userFilter) {
+        $isAdmin = ($_SESSION['role'] ?? '') === 'admin';
+        if ($this->userFilter && !$isAdmin) {
             $uid = $_SESSION['user_id'];
             $stmt = $this->conn->prepare("SELECT * FROM `{$this->tableName}` WHERE `{$this->userFilter}` = ?");
             $stmt->bind_param("i", $uid);
@@ -89,12 +91,14 @@ class BaseController {
             $values[] = $_SESSION['user_id'];
         }
 
+        $isAdmin = ($_SESSION['role'] ?? '') === 'admin';
+
         if ($id) {
-            // UPDATE Logic — also enforce ownership if userFilter is set
+            // UPDATE Logic — enforce ownership unless admin
             $sql = "UPDATE `{$this->tableName}` SET " . implode(', ', $setClause) . " WHERE `{$this->idField}` = ?";
             $types .= "i";
             $values[] = $id;
-            if ($this->userFilter) {
+            if ($this->userFilter && !$isAdmin) {
                 $sql .= " AND `{$this->userFilter}` = ?";
                 $types .= "i";
                 $values[] = $_SESSION['user_id'];
@@ -128,11 +132,12 @@ class BaseController {
             return;
         }
 
+        $isAdmin = ($_SESSION['role'] ?? '') === 'admin';
         $sql = "DELETE FROM `{$this->tableName}` WHERE `{$this->idField}` = ?";
         $types = "i";
         $params = [$id];
 
-        if ($this->userFilter) {
+        if ($this->userFilter && !$isAdmin) {
             $sql .= " AND `{$this->userFilter}` = ?";
             $types .= "i";
             $params[] = $_SESSION['user_id'];
