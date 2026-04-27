@@ -4,5 +4,5 @@ include __DIR__ . '/BaseController.php';
 header('Content-Type: application/json');
 
 $fields = ['UserID', 'DrinkID'];
-$controller = new BaseController($conn, "Favorite", "UserID", $fields);
+$controller = new BaseController($conn, "Favorite", "RowID", $fields);
 $controller->handleRequest($_SERVER['REQUEST_METHOD']);

@@ -41,34 +41,37 @@ CREATE TABLE Drink (
 
 -- 4. Drink_Ingredient Table (Bridge)
 CREATE TABLE Drink_Ingredient (
+    RowID INT AUTO_INCREMENT PRIMARY KEY,
     DrinkID INT,
     IngredientID INT,
     Quantity DECIMAL(5,2),
     Unit VARCHAR(20),
     Preperation_note TEXT,
     Ingredient_order INT,
-    PRIMARY KEY (DrinkID, IngredientID),
+    UNIQUE KEY uq_drink_ingredient (DrinkID, IngredientID),
     FOREIGN KEY (DrinkID) REFERENCES Drink(DrinkID),
     FOREIGN KEY (IngredientID) REFERENCES Ingredient(IngredientID)
 );
 
 -- 5. User_Inventory Table (Bridge)
 CREATE TABLE User_Inventory (
+    RowID INT AUTO_INCREMENT PRIMARY KEY,
     UserID INT,
     IngredientID INT,
     Quantity_owned DECIMAL(5,2),
     Unit VARCHAR(20),
-    PRIMARY KEY (UserID, IngredientID),
+    UNIQUE KEY uq_user_inventory (UserID, IngredientID),
     FOREIGN KEY (UserID) REFERENCES User(UserID),
     FOREIGN KEY (IngredientID) REFERENCES Ingredient(IngredientID)
 );
 
 -- 6. Favorite Table (Bridge)
 CREATE TABLE Favorite (
+    RowID INT AUTO_INCREMENT PRIMARY KEY,
     UserID INT,
     DrinkID INT,
     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (UserID, DrinkID),
+    UNIQUE KEY uq_favorite (UserID, DrinkID),
     FOREIGN KEY (UserID) REFERENCES User(UserID),
     FOREIGN KEY (DrinkID) REFERENCES Drink(DrinkID)
 );
@@ -97,12 +100,13 @@ CREATE TABLE Shopping_List (
 
 -- 9. Shopping_List_Item Table (Bridge)
 CREATE TABLE Shopping_List_Item (
+    RowID INT AUTO_INCREMENT PRIMARY KEY,
     ShoppinglistID INT,
     IngredientID INT,
     Unit VARCHAR(20),
     Is_purchased BOOLEAN DEFAULT FALSE,
     notes TEXT,
-    PRIMARY KEY (ShoppinglistID, IngredientID),
+    UNIQUE KEY uq_shopping_item (ShoppinglistID, IngredientID),
     FOREIGN KEY (ShoppinglistID) REFERENCES Shopping_List(ShoppingListID),
     FOREIGN KEY (IngredientID) REFERENCES Ingredient(IngredientID)
 );

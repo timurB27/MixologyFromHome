@@ -10,18 +10,21 @@
  */
 const schemas = {
     users: {
+        label: 'User',
         api: 'api/users.php',
         idField: 'UserID',
         fields: ['first_name', 'last_name', 'email', 'password', 'phone', 'role', 'status', 'bio'],
         labels: ['First Name', 'Last Name', 'Email', 'Password', 'Phone', 'Role', 'Status', 'Bio']
     },
     ingredients: {
+        label: 'Ingredient',
         api: 'api/ingredients.php',
         idField: 'IngredientID',
         fields: ['Ingredient_name', 'category', 'unit_of_measurement', 'is_base_spirit'],
         labels: ['Ingredient', 'Category', 'Unit', 'Base Spirit (0/1)']
     },
     drinks: {
+        label: 'Drink',
         api: 'api/drinks.php',
         idField: 'DrinkID',
         fields: ['name', 'description', 'recipe', 'base_spirit_ID', 'flavor_profile', 'glassware_type', 'difficulty', 'category', 'created_by_userID'],
@@ -29,27 +32,31 @@ const schemas = {
         lookups: { base_spirit_ID: 'ingredients', created_by_userID: 'users' }
     },
     drink_ingredients: {
+        label: 'Drink Ingredient',
         api: 'api/drink_ingredients.php',
-        idField: 'DrinkID',
+        idField: 'RowID',
         fields: ['DrinkID', 'IngredientID', 'Quantity', 'Unit', 'Preperation_note', 'Ingredient_order'],
         labels: ['Drink', 'Ingredient', 'Qty', 'Unit', 'Notes', 'Order'],
         lookups: { DrinkID: 'drinks', IngredientID: 'ingredients' }
     },
     inventory: {
+        label: 'Inventory Item',
         api: 'api/inventory.php',
-        idField: 'UserID',
+        idField: 'RowID',
         fields: ['UserID', 'IngredientID', 'Quantity_owned', 'Unit'],
         labels: ['User', 'Ingredient', 'Qty Owned', 'Unit'],
         lookups: { UserID: 'users', IngredientID: 'ingredients' }
     },
     favorites: {
+        label: 'Favorite',
         api: 'api/favorites.php',
-        idField: 'UserID',
+        idField: 'RowID',
         fields: ['UserID', 'DrinkID'],
         labels: ['User', 'Drink'],
         lookups: { UserID: 'users', DrinkID: 'drinks' }
     },
     history: {
+        label: 'History Entry',
         api: 'api/history.php',
         idField: 'HistoryID',
         fields: ['UserID', 'DrinkID', 'personal_rating', 'notes'],
@@ -57,6 +64,7 @@ const schemas = {
         lookups: { UserID: 'users', DrinkID: 'drinks' }
     },
     shopping_lists: {
+        label: 'Shopping List',
         api: 'api/shopping_lists.php',
         idField: 'ShoppingListID',
         fields: ['UserID', 'list_name', 'status'],
@@ -64,8 +72,9 @@ const schemas = {
         lookups: { UserID: 'users' }
     },
     shopping_items: {
+        label: 'Shopping Item',
         api: 'api/shopping_items.php',
-        idField: 'ShoppinglistID',
+        idField: 'RowID',
         fields: ['ShoppinglistID', 'IngredientID', 'Unit', 'Is_purchased', 'notes'],
         labels: ['Shopping List', 'Ingredient', 'Unit', 'Purchased (0/1)', 'Notes'],
         lookups: { ShoppinglistID: 'shopping_lists', IngredientID: 'ingredients' }
@@ -171,32 +180,43 @@ async function renderTable(schemaKey) {
  * editRow(): Fetches the specific row data first, then opens the form to edit it.
  * deleteRow(): Sends a DELETE request to the API for a specific ID.
  */
-function showForm(schemaKey, id = null, existingData = null) {
+async function showForm(schemaKey, id = null, existingData = null) {
     const schema = schemas[schemaKey];
+    if (schema.lookups) await loadLookups();
+
     const modal = document.getElementById('modal-overlay');
     const inputContainer = document.getElementById('form-inputs');
     const idHiddenInput = document.getElementById('form-id-field');
-    
-    // Set the hidden ID field (if empty, PHP knows it's a NEW record. If filled, it's an UPDATE)
+
     idHiddenInput.value = id || '';
-    document.getElementById('modal-title').innerText = id ? `Edit ${schemaKey}` : `Add New ${schemaKey}`;
+    const displayLabel = schema.label || schemaKey;
+    document.getElementById('modal-title').innerText = id ? `Edit ${displayLabel}` : `Add New ${displayLabel}`;
     inputContainer.innerHTML = '';
 
-    // Generate input boxes for every field defined in our Schema
     schema.fields.forEach((field, index) => {
         const label = schema.labels[index];
         const value = existingData ? existingData[field] : '';
-        
+        const lookupType = schema.lookups && schema.lookups[field];
+
+        let input;
+        if (lookupType && lookupCache[lookupType]) {
+            const options = Object.entries(lookupCache[lookupType])
+                .map(([optId, optName]) => `<option value="${optId}"${optId == value ? ' selected' : ''}>${optName}</option>`)
+                .join('');
+            input = `<select name="${field}" required><option value="">-- Select --</option>${options}</select>`;
+        } else {
+            input = `<input type="text" name="${field}" value="${value}" required>`;
+        }
+
         inputContainer.innerHTML += `
             <div class="form-group">
                 <label>${label}</label>
-                <input type="text" name="${field}" value="${value}" required>
+                ${input}
             </div>`;
     });
 
     modal.style.display = 'flex';
 
-    // Override the form's submit behavior to use our custom saveData function
     document.getElementById('universal-form').onsubmit = (e) => {
         e.preventDefault();
         saveData(schemaKey);
