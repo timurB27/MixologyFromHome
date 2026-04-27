@@ -521,7 +521,7 @@ body {
 
 .modal-close:hover { background: #e5e7eb; color: var(--text); }
 
-#universal-form { padding: 24px 28px; }
+#universal-form, #pw-change-form { padding: 24px 28px; }
 
 .form-group { margin-bottom: 18px; }
 
