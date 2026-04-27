@@ -6,17 +6,19 @@ header('Content-Type: application/json');
 $user_id = $_SESSION['user_id'];
 
 // Report 1: Drinks the logged-in user can make with their current pantry.
-// Only considers drinks that have at least one ingredient defined in Drink_Ingredient.
+// A drink qualifies when every ingredient in its recipe exists in the user's
+// inventory with Quantity_owned > 0.  Drinks with no recipe defined are excluded.
 $stmt = $conn->prepare("
     SELECT d.name, d.difficulty, d.category, d.flavor_profile
     FROM Drink d
     WHERE d.DrinkID IN (SELECT DISTINCT DrinkID FROM Drink_Ingredient)
     AND NOT EXISTS (
-        SELECT 1 FROM Drink_Ingredient di
+        SELECT 1
+        FROM Drink_Ingredient di
+        LEFT JOIN User_Inventory ui
+            ON ui.IngredientID = di.IngredientID AND ui.UserID = ?
         WHERE di.DrinkID = d.DrinkID
-        AND di.IngredientID NOT IN (
-            SELECT IngredientID FROM User_Inventory WHERE UserID = ?
-        )
+          AND (ui.IngredientID IS NULL OR ui.Quantity_owned <= 0)
     )
     ORDER BY d.name
 ");

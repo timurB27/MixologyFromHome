@@ -49,7 +49,7 @@ CREATE TABLE Drink_Ingredient (
     Preperation_note TEXT,
     Ingredient_order INT,
     UNIQUE KEY uq_drink_ingredient (DrinkID, IngredientID),
-    FOREIGN KEY (DrinkID) REFERENCES Drink(DrinkID),
+    FOREIGN KEY (DrinkID) REFERENCES Drink(DrinkID) ON DELETE CASCADE,
     FOREIGN KEY (IngredientID) REFERENCES Ingredient(IngredientID)
 );
 
@@ -73,7 +73,7 @@ CREATE TABLE Favorite (
     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE KEY uq_favorite (UserID, DrinkID),
     FOREIGN KEY (UserID) REFERENCES User(UserID),
-    FOREIGN KEY (DrinkID) REFERENCES Drink(DrinkID)
+    FOREIGN KEY (DrinkID) REFERENCES Drink(DrinkID) ON DELETE CASCADE
 );
 
 -- 7. User_Drink_History Table
@@ -85,7 +85,7 @@ CREATE TABLE User_Drink_History (
     personal_rating INT,
     notes TEXT,
     FOREIGN KEY (UserID) REFERENCES User(UserID),
-    FOREIGN KEY (DrinkID) REFERENCES Drink(DrinkID)
+    FOREIGN KEY (DrinkID) REFERENCES Drink(DrinkID) ON DELETE CASCADE
 );
 
 -- 8. Shopping_List Table
@@ -161,7 +161,13 @@ INSERT INTO Ingredient (Ingredient_name, category, unit_of_measurement, is_base_
 ('Club Soda', 'Mixer', 'oz', 0),
 ('Ginger Beer', 'Mixer', 'oz', 0),
 ('Orgeat', 'Syrup', 'oz', 0),
-('Grenadine', 'Syrup', 'oz', 0);
+('Grenadine', 'Syrup', 'oz', 0),
+('Cognac', 'Spirit', 'oz', 1),
+('Grapefruit Soda', 'Mixer', 'oz', 0),
+('Fresh Mint', 'Herb', 'leaves', 0),
+('Maraschino Liqueur', 'Liqueur', 'oz', 0),
+('Green Chartreuse', 'Liqueur', 'oz', 0),
+('Lillet Blanc', 'Fortified Wine', 'oz', 0);
 
 -- drink table:
 INSERT INTO Drink (name, description, recipe, base_spirit_ID, flavor_profile, glassware_type, difficulty, category, created_by_userID) VALUES
@@ -186,6 +192,29 @@ INSERT INTO Drink (name, description, recipe, base_spirit_ID, flavor_profile, gl
 ('Boulevardier', 'Negroni but with whiskey.', 'Stir bourbon, vermouth, campari.', 2, 'Bitter', 'Rocks', 'Easy', 'Classic', 13),
 ('Vesper', 'Bond’s drink.', 'Shake gin, vodka, Lillet Blanc.', 1, 'Strong', 'Martini', 'Medium', 'Classic', 1);
 
+
+-- drink ingredients (full recipes for every drink):
+INSERT INTO Drink_Ingredient (DrinkID, IngredientID, Quantity, Unit, Ingredient_order) VALUES
+(1,1,1.50,'oz',1),(1,7,0.75,'oz',2),
+(2,2,2.00,'oz',1),(2,9,0.10,'dashes',2),(2,10,0.25,'oz',3),
+(3,3,2.00,'oz',1),(3,11,1.00,'oz',2),(3,10,0.75,'oz',3),
+(4,4,2.00,'oz',1),(4,13,1.00,'oz',2),(4,11,1.00,'oz',3),
+(5,1,1.00,'oz',1),(5,6,1.00,'oz',2),(5,8,1.00,'oz',3),
+(6,2,2.00,'oz',1),(6,6,1.00,'oz',2),(6,9,0.10,'dashes',3),
+(7,1,2.00,'oz',1),(7,11,0.75,'oz',2),(7,10,0.50,'oz',3),
+(8,1,1.50,'oz',1),(8,12,1.00,'oz',2),(8,10,0.50,'oz',3),(8,17,2.00,'oz',4),
+(9,2,2.00,'oz',1),(9,12,0.75,'oz',2),(9,10,0.50,'oz',3),
+(10,16,3.00,'oz',1),(10,17,1.00,'oz',2),
+(11,4,2.00,'oz',1),(11,11,0.50,'oz',2),(11,22,3.00,'oz',3),
+(12,5,2.00,'oz',1),(12,11,0.50,'oz',2),(12,18,4.00,'oz',3),
+(13,3,2.00,'oz',1),(13,18,4.00,'oz',2),(13,11,0.50,'oz',3),
+(14,1,2.00,'oz',1),(14,12,0.75,'oz',2),(14,10,0.75,'oz',3),
+(15,21,2.00,'oz',1),(15,13,0.75,'oz',2),(15,12,0.75,'oz',3),
+(16,1,0.75,'oz',1),(16,11,0.75,'oz',2),(16,24,0.75,'oz',3),(16,25,0.75,'oz',4),
+(17,3,2.00,'oz',1),(17,14,0.50,'oz',2),(17,11,0.75,'oz',3),(17,19,0.50,'oz',4),
+(18,3,2.00,'oz',1),(18,11,1.00,'oz',2),(18,10,0.75,'oz',3),(18,17,2.00,'oz',4),(18,23,8.00,'leaves',5),
+(19,2,1.50,'oz',1),(19,6,1.00,'oz',2),(19,8,1.00,'oz',3),
+(20,1,3.00,'oz',1),(20,5,1.00,'oz',2),(20,26,0.50,'oz',3);
 
 -- user inventory insert:
 INSERT INTO User_Inventory (UserID, IngredientID, Quantity_owned, Unit) VALUES
