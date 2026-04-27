@@ -618,3 +618,135 @@ body {
     color: var(--danger);
     font-size: 14px;
 }
+
+/* ── DRINK CARD GRID ────────────────────────────────────────── */
+.drink-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+    padding: 4px 0 16px;
+}
+
+.drink-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 18px 16px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: box-shadow 0.15s, transform 0.15s, border-color 0.15s;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.drink-card:hover {
+    box-shadow: var(--shadow);
+    transform: translateY(-2px);
+    border-color: var(--accent);
+}
+
+.drink-card-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.3;
+}
+
+.drink-card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.tag {
+    background: #f0f2f5;
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.tag-diff {
+    background: #fef3e2;
+    color: var(--accent-dark);
+}
+
+.drink-card-flavor {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.drink-card-spirit {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: auto;
+}
+
+/* ── DRINK DETAIL MODAL ──────────────────────────────────────── */
+.drink-detail-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.detail-row {
+    display: flex;
+    gap: 12px;
+    align-items: baseline;
+}
+
+.detail-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    min-width: 90px;
+    flex-shrink: 0;
+}
+
+.detail-value {
+    font-size: 14px;
+    color: var(--text);
+}
+
+.detail-section {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 4px;
+}
+
+.detail-body {
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.6;
+    background: #f8f9fa;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    border-left: 3px solid var(--accent);
+    white-space: pre-wrap;
+}
+
+/* ── BROWSE INGREDIENTS — pantry button ─────────────────────── */
+.btn-pantry {
+    background: var(--success);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 5px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+    white-space: nowrap;
+}
+
+.btn-pantry:hover {
+    background: #219a52;
+}

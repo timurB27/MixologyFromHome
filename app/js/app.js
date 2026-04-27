@@ -40,28 +40,28 @@ const schemas = {
         lookups: { DrinkID: 'drinks', IngredientID: 'ingredients' }
     },
     inventory: {
-        label: 'Inventory Item',
+        label: 'Pantry Item',
         api: 'api/inventory.php',
         idField: 'RowID',
-        fields: ['UserID', 'IngredientID', 'Quantity_owned', 'Unit'],
-        labels: ['User', 'Ingredient', 'Qty Owned', 'Unit'],
-        lookups: { UserID: 'users', IngredientID: 'ingredients' }
+        fields: ['IngredientID', 'Quantity_owned', 'Unit'],
+        labels: ['Ingredient', 'Qty Owned', 'Unit'],
+        lookups: { IngredientID: 'ingredients' }
     },
     favorites: {
         label: 'Favorite',
         api: 'api/favorites.php',
         idField: 'RowID',
-        fields: ['UserID', 'DrinkID'],
-        labels: ['User', 'Drink'],
-        lookups: { UserID: 'users', DrinkID: 'drinks' }
+        fields: ['DrinkID'],
+        labels: ['Drink'],
+        lookups: { DrinkID: 'drinks' }
     },
     history: {
         label: 'History Entry',
         api: 'api/history.php',
         idField: 'HistoryID',
-        fields: ['UserID', 'DrinkID', 'personal_rating', 'notes'],
-        labels: ['User', 'Drink', 'Rating (1-5)', 'Notes'],
-        lookups: { UserID: 'users', DrinkID: 'drinks' }
+        fields: ['DrinkID', 'personal_rating', 'notes'],
+        labels: ['Drink', 'Rating (1-5)', 'Notes'],
+        lookups: { DrinkID: 'drinks' }
     },
     shopping_lists: {
         label: 'Shopping List',
@@ -127,12 +127,27 @@ async function apiRequest(url, options = {}) {
 }
 
 /**
- * 3. THE TABLE BUILDER
+ * 3. CURRENT VIEW TRACKER
+ * Tracks the active view so save/delete can refresh the right content.
+ */
+let currentView = null;
+
+function refreshView() {
+    if (!currentView) return;
+    if (currentView === 'drinks') renderDrinksGrid();
+    else if (currentView === 'ingredients') renderBrowseIngredients();
+    else if (currentView === 'reports') renderReports();
+    else renderTable(currentView);
+}
+
+/**
+ * 4. THE TABLE BUILDER
  * This function builds the HTML table on the fly.
- * It doesn't care if it's showing Users or Drinks; it just loops through 
+ * It doesn't care if it's showing Users or Drinks; it just loops through
  * whatever 'schemaKey' we give it and creates the columns.
  */
 async function renderTable(schemaKey) {
+    currentView = schemaKey;
     const schema = schemas[schemaKey];
     const container = document.getElementById('table-container');
     container.innerHTML = '<div class="loading">Loading data...</div>';
@@ -174,7 +189,142 @@ async function renderTable(schemaKey) {
 }
 
 /**
- * 4. MODAL & FORM LOGIC
+ * 5. DRINK RECIPES — card grid view
+ */
+let _drinkCache = {};
+
+async function renderDrinksGrid() {
+    currentView = 'drinks';
+    const container = document.getElementById('table-container');
+    container.innerHTML = '<div class="loading">Loading drinks...</div>';
+
+    await loadLookups();
+    const data = await apiRequest('api/drinks.php');
+
+    if (!data || data.status === 'error') {
+        container.innerHTML = `<p class="error">Error: Could not load drinks.</p>`;
+        return;
+    }
+
+    _drinkCache = {};
+    data.forEach(d => { _drinkCache[d.DrinkID] = d; });
+
+    let html = `<button onclick="showForm('drinks')" class="btn-add">+ Add New Drink</button>`;
+    html += `<div class="drink-grid">`;
+
+    data.forEach(drink => {
+        const base = lookupCache.ingredients[drink.base_spirit_ID] || '';
+        html += `
+            <div class="drink-card" onclick="showDrinkDetail(${drink.DrinkID})">
+                <div class="drink-card-name">${drink.name}</div>
+                <div class="drink-card-tags">
+                    ${drink.category ? `<span class="tag">${drink.category}</span>` : ''}
+                    ${drink.difficulty ? `<span class="tag tag-diff">${drink.difficulty}</span>` : ''}
+                </div>
+                ${drink.flavor_profile ? `<div class="drink-card-flavor">${drink.flavor_profile}</div>` : ''}
+                ${base ? `<div class="drink-card-spirit">🍶 ${base}</div>` : ''}
+            </div>`;
+    });
+
+    html += `</div>`;
+    container.innerHTML = html;
+}
+
+function showDrinkDetail(drinkId) {
+    const drink = _drinkCache[drinkId];
+    if (!drink) return;
+
+    const modal = document.getElementById('modal-overlay');
+    document.getElementById('modal-title').innerText = drink.name;
+    document.getElementById('form-id-field').value = '';
+
+    const base = lookupCache.ingredients[drink.base_spirit_ID] || '—';
+    const creator = lookupCache.users[drink.created_by_userID] || '—';
+
+    document.getElementById('form-inputs').innerHTML = `
+        <div class="drink-detail-grid">
+            <div class="detail-row"><span class="detail-label">Category</span><span class="detail-value">${drink.category || '—'}</span></div>
+            <div class="detail-row"><span class="detail-label">Difficulty</span><span class="detail-value">${drink.difficulty || '—'}</span></div>
+            <div class="detail-row"><span class="detail-label">Flavor</span><span class="detail-value">${drink.flavor_profile || '—'}</span></div>
+            <div class="detail-row"><span class="detail-label">Glassware</span><span class="detail-value">${drink.glassware_type || '—'}</span></div>
+            <div class="detail-row"><span class="detail-label">Base Spirit</span><span class="detail-value">${base}</span></div>
+            <div class="detail-row"><span class="detail-label">Created By</span><span class="detail-value">${creator}</span></div>
+            ${drink.description ? `<div class="detail-section"><div class="detail-label">Description</div><div class="detail-body">${drink.description}</div></div>` : ''}
+            ${drink.recipe ? `<div class="detail-section"><div class="detail-label">Recipe</div><div class="detail-body">${drink.recipe}</div></div>` : ''}
+        </div>`;
+
+    document.querySelector('.form-actions').innerHTML = `
+        <button type="button" class="btn-edit" onclick="editRow('drinks', ${drinkId})">✏️ Edit</button>
+        <button type="button" class="btn-delete" onclick="deleteRow('drinks', ${drinkId})">🗑️ Delete</button>
+        <button type="button" onclick="closeModal()" class="btn-cancel">Close</button>`;
+
+    modal.style.display = 'flex';
+}
+
+/**
+ * 6. BROWSE INGREDIENTS — read-only table with "+ Pantry" action per row
+ */
+async function renderBrowseIngredients() {
+    currentView = 'ingredients';
+    const container = document.getElementById('table-container');
+    container.innerHTML = '<div class="loading">Loading ingredients...</div>';
+
+    const data = await apiRequest('api/ingredients.php');
+
+    if (!data || data.status === 'error') {
+        container.innerHTML = `<p class="error">Error: Could not load ingredients.</p>`;
+        return;
+    }
+
+    let html = `<table class="universal-table"><thead><tr>
+        <th>Ingredient</th><th>Category</th><th>Unit</th><th>Base Spirit</th><th>Action</th>
+    </tr></thead><tbody>`;
+
+    data.forEach(ing => {
+        const safeName = ing.Ingredient_name.replace(/'/g, "\\'");
+        html += `<tr>
+            <td>${ing.Ingredient_name}</td>
+            <td>${ing.category || '—'}</td>
+            <td>${ing.unit_of_measurement || '—'}</td>
+            <td>${ing.is_base_spirit ? 'Yes' : 'No'}</td>
+            <td><button class="btn-pantry" onclick="showAddToPantryModal(${ing.IngredientID}, '${safeName}')">+ Pantry</button></td>
+        </tr>`;
+    });
+
+    html += `</tbody></table>`;
+    container.innerHTML = html;
+}
+
+function showAddToPantryModal(ingredientId, ingredientName) {
+    const modal = document.getElementById('modal-overlay');
+    document.getElementById('modal-title').innerText = `Add to Pantry: ${ingredientName}`;
+    document.getElementById('form-id-field').value = '';
+
+    document.getElementById('form-inputs').innerHTML = `
+        <input type="hidden" name="IngredientID" value="${ingredientId}">
+        <div class="form-group">
+            <label>Quantity</label>
+            <input type="text" name="Quantity_owned" value="" required>
+        </div>
+        <div class="form-group">
+            <label>Unit</label>
+            <input type="text" name="Unit" value="" required>
+        </div>`;
+
+    document.querySelector('.form-actions').innerHTML = `
+        <button type="submit" class="btn-save">💾 Add to Pantry</button>
+        <button type="button" onclick="closeModal()" class="btn-cancel">Cancel</button>`;
+
+    modal.style.display = 'flex';
+
+    document.getElementById('universal-form').onsubmit = (e) => {
+        e.preventDefault();
+        saveData('inventory');
+    };
+}
+
+/**
+ * 7. MODAL & FORM LOGIC
  * showForm(): Opens the pop-up and generates input fields based on the Schema.
  * saveData(): Collects the form data and sends a POST request to PHP to Save/Update.
  * editRow(): Fetches the specific row data first, then opens the form to edit it.
@@ -215,6 +365,11 @@ async function showForm(schemaKey, id = null, existingData = null) {
             </div>`;
     });
 
+    // Reset form-actions to default Save/Cancel
+    document.querySelector('.form-actions').innerHTML = `
+        <button type="submit" class="btn-save">💾 Save</button>
+        <button type="button" onclick="closeModal()" class="btn-cancel">Cancel</button>`;
+
     modal.style.display = 'flex';
 
     document.getElementById('universal-form').onsubmit = (e) => {
@@ -226,7 +381,7 @@ async function showForm(schemaKey, id = null, existingData = null) {
 async function saveData(schemaKey) {
     const schema = schemas[schemaKey];
     const formData = new FormData(document.getElementById('universal-form'));
-    
+
     // Ensure the ID is included in the POST data so PHP knows which record to update
     const id = document.getElementById('form-id-field').value;
     if (id) formData.append('id', id);
@@ -238,7 +393,7 @@ async function saveData(schemaKey) {
 
     if (response && response.status === 'success') {
         closeModal();
-        renderTable(schemaKey); // Refresh the table to show changes
+        refreshView();
     } else {
         alert("Save failed: " + (response.message || "Unknown error"));
     }
@@ -257,25 +412,31 @@ async function editRow(schemaKey, id) {
 async function deleteRow(schemaKey, id) {
     if (!confirm("Are you sure you want to delete this?")) return;
 
-    const response = await apiRequest(`${schemas[schemaKey].api}?id=${id}`, { 
-        method: 'DELETE' 
+    const response = await apiRequest(`${schemas[schemaKey].api}?id=${id}`, {
+        method: 'DELETE'
     });
 
-    if (response) {
-        renderTable(schemaKey);
+    if (response && response.status === 'success') {
+        closeModal();
+        refreshView();
     }
 }
 
 function closeModal() {
     document.getElementById('modal-overlay').style.display = 'none';
+    // Reset form-actions to default state
+    document.querySelector('.form-actions').innerHTML = `
+        <button type="submit" class="btn-save">💾 Save</button>
+        <button type="button" onclick="closeModal()" class="btn-cancel">Cancel</button>`;
 }
 
 /**
- * 5. REPORTS VIEW
+ * 8. REPORTS VIEW
  * Fetches all three aggregation reports from api/reports.php and renders
  * them as read-only summary tables (no CRUD controls).
  */
 async function renderReports() {
+    currentView = 'reports';
     const container = document.getElementById('table-container');
     container.innerHTML = '<div class="loading">Loading reports...</div>';
 
@@ -327,7 +488,7 @@ async function renderReports() {
 }
 
 /**
- * 6. NAVIGATION & INITIALIZATION
+ * 9. NAVIGATION & INITIALIZATION
  * This section handles clicking the Sidebar links and loading the first view.
  */
 document.querySelectorAll('.nav-item').forEach(item => {
@@ -342,6 +503,10 @@ document.querySelectorAll('.nav-item').forEach(item => {
 
         if (targetSchema === 'reports') {
             renderReports();
+        } else if (targetSchema === 'drinks') {
+            renderDrinksGrid();
+        } else if (targetSchema === 'ingredients') {
+            renderBrowseIngredients();
         } else {
             renderTable(targetSchema);
         }

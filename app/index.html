@@ -86,7 +86,7 @@
 
         <ul id="nav-list">
             <li class="nav-section-label">Bar</li>
-            <li class="nav-item" data-target="ingredients">🧪 Manage Inventory</li>
+            <li class="nav-item" data-target="ingredients">🌿 Browse Ingredients</li>
             <li class="nav-item" data-target="drinks">🍸 Drink Recipes</li>
             <li class="nav-item" data-target="drink_ingredients">📋 Recipe Ingredients</li>
 
@@ -210,7 +210,15 @@
         }
 
         await loadLookups();
-        renderTable('ingredients');
+
+        // Set initial active nav item and view title
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        const firstNav = document.querySelector('.nav-item[data-target="ingredients"]');
+        if (firstNav) {
+            firstNav.classList.add('active');
+            document.getElementById('view-title').innerText = firstNav.innerText;
+        }
+        renderBrowseIngredients();
     }
 
     /* ── LOGIN ──────────────────────────────────────────────── */
