@@ -14,7 +14,8 @@ const schemas = {
         api: 'api/ingredients.php',
         idField: 'IngredientID',
         fields: ['Ingredient_name', 'category', 'unit_of_measurement', 'is_base_spirit'],
-        labels: ['Ingredient', 'Category', 'Unit', 'Base Spirit (0/1)']
+        labels: ['Ingredient', 'Category', 'Unit', 'Base Spirit'],
+        boolFields: ['is_base_spirit']
     },
     drinks: {
         label: 'Drink',
@@ -69,7 +70,8 @@ const schemas = {
         api: 'api/shopping_items.php',
         idField: 'RowID',
         fields: ['ShoppinglistID', 'IngredientID', 'quantity', 'Unit', 'Is_purchased', 'notes'],
-        labels: ['Shopping List', 'Ingredient', 'Quantity', 'Unit', 'Purchased (0/1)', 'Notes'],
+        labels: ['Shopping List', 'Ingredient', 'Quantity', 'Unit', 'Purchased', 'Notes'],
+        boolFields: ['Is_purchased'],
         lookups: { ShoppinglistID: 'shopping_lists', IngredientID: 'ingredients' }
     }
 };
@@ -160,8 +162,10 @@ async function renderTable(schemaKey) {
         schema.fields.forEach(field => {
             const val = row[field] ?? '';
             const lookupType = schema.lookups && schema.lookups[field];
+            const isBool = schema.boolFields && schema.boolFields.includes(field);
             const display = lookupType && lookupCache[lookupType][val]
                 ? lookupCache[lookupType][val]
+                : isBool ? (+val ? 'Yes' : 'No')
                 : val;
             html += `<td>${display}</td>`;
         });
@@ -283,7 +287,7 @@ async function renderBrowseIngredients() {
             <td>${ing.Ingredient_name}</td>
             <td>${ing.category || '—'}</td>
             <td>${ing.unit_of_measurement || '—'}</td>
-            <td>${ing.is_base_spirit ? 'Yes' : 'No'}</td>
+            <td>${+ing.is_base_spirit ? 'Yes' : 'No'}</td>
             <td>
                 <button class="btn-pantry" onclick="showAddToPantryModal(${ing.IngredientID}, '${safeName}')">+ Pantry</button>
                 <button class="btn-edit" onclick="editRow('ingredients', ${ing.IngredientID})">Edit</button>
@@ -359,12 +363,18 @@ async function showForm(schemaKey, id = null, existingData = null) {
         const value = existingData ? existingData[field] : '';
         const lookupType = schema.lookups && schema.lookups[field];
 
+        const isBool = schema.boolFields && schema.boolFields.includes(field);
         let input;
         if (lookupType && lookupCache[lookupType]) {
             const options = Object.entries(lookupCache[lookupType])
                 .map(([optId, optName]) => `<option value="${optId}"${optId == value ? ' selected' : ''}>${optName}</option>`)
                 .join('');
             input = `<select name="${field}" required><option value="">-- Select --</option>${options}</select>`;
+        } else if (isBool) {
+            input = `<select name="${field}">
+                <option value="0"${!+value ? ' selected' : ''}>No</option>
+                <option value="1"${+value ? ' selected' : ''}>Yes</option>
+            </select>`;
         } else {
             input = `<input type="text" name="${field}" value="${value}" required>`;
         }
