@@ -272,8 +272,9 @@ async function renderBrowseIngredients() {
         return;
     }
 
-    let html = `<table class="universal-table"><thead><tr>
-        <th>Ingredient</th><th>Category</th><th>Unit</th><th>Base Spirit</th><th>Action</th>
+    let html = `<button onclick="showForm('ingredients')" class="btn-add">+ Add New Ingredient</button>`;
+    html += `<table class="universal-table"><thead><tr>
+        <th>Ingredient</th><th>Category</th><th>Unit</th><th>Base Spirit</th><th>Actions</th>
     </tr></thead><tbody>`;
 
     data.forEach(ing => {
@@ -283,7 +284,11 @@ async function renderBrowseIngredients() {
             <td>${ing.category || '—'}</td>
             <td>${ing.unit_of_measurement || '—'}</td>
             <td>${ing.is_base_spirit ? 'Yes' : 'No'}</td>
-            <td><button class="btn-pantry" onclick="showAddToPantryModal(${ing.IngredientID}, '${safeName}')">+ Pantry</button></td>
+            <td>
+                <button class="btn-pantry" onclick="showAddToPantryModal(${ing.IngredientID}, '${safeName}')">+ Pantry</button>
+                <button class="btn-edit" onclick="editRow('ingredients', ${ing.IngredientID})">Edit</button>
+                <button class="btn-delete" onclick="deleteRow('ingredients', ${ing.IngredientID})">Delete</button>
+            </td>
         </tr>`;
     });
 
@@ -423,6 +428,8 @@ async function deleteRow(schemaKey, id) {
     if (response && response.status === 'success') {
         closeModal();
         refreshView();
+    } else {
+        alert("Delete failed: " + (response && response.message ? response.message : "Unknown error"));
     }
 }
 
