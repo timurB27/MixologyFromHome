@@ -103,6 +103,7 @@ CREATE TABLE Shopping_List_Item (
     RowID INT AUTO_INCREMENT PRIMARY KEY,
     ShoppinglistID INT,
     IngredientID INT,
+    quantity DECIMAL(8,2),
     Unit VARCHAR(20),
     Is_purchased BOOLEAN DEFAULT FALSE,
     notes TEXT,

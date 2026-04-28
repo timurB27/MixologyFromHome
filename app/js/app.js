@@ -68,8 +68,8 @@ const schemas = {
         label: 'Shopping Item',
         api: 'api/shopping_items.php',
         idField: 'RowID',
-        fields: ['ShoppinglistID', 'IngredientID', 'Unit', 'Is_purchased', 'notes'],
-        labels: ['Shopping List', 'Ingredient', 'Unit', 'Purchased (0/1)', 'Notes'],
+        fields: ['ShoppinglistID', 'IngredientID', 'quantity', 'Unit', 'Is_purchased', 'notes'],
+        labels: ['Shopping List', 'Ingredient', 'Quantity', 'Unit', 'Purchased (0/1)', 'Notes'],
         lookups: { ShoppinglistID: 'shopping_lists', IngredientID: 'ingredients' }
     }
 };

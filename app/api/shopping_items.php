@@ -3,7 +3,7 @@ include __DIR__ . '/../db_connect.php';
 include __DIR__ . '/BaseController.php';
 header('Content-Type: application/json');
 
-$fields = ['ShoppinglistID', 'IngredientID', 'Unit', 'Is_purchased', 'notes'];
+$fields = ['ShoppinglistID', 'IngredientID', 'quantity', 'Unit', 'Is_purchased', 'notes'];
 
 class ShoppingItemsController extends BaseController {
     protected function read() {
